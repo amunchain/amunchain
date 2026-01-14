@@ -1,12 +1,13 @@
 
-name: ci
+name: ci build-test
 on:
   push:
   pull_request:
 
 jobs:
-  build-test:
+  ci-build-test:
     runs-on: ubuntu-latest
+    name: ci build-test
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
