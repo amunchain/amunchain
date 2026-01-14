@@ -48,3 +48,4 @@ cp .env.example .env
 # edit .env
 docker compose -f docker-compose.monitoring.yml up -d
 ```
+# protect-test
