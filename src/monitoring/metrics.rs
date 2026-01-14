@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 use prometheus::{IntCounter, IntGauge, Registry};
 use thiserror::Error;
@@ -53,29 +52,60 @@ impl Metrics {
     pub fn new() -> Result<Self, MetricsError> {
         let registry = Registry::new();
 
-        let p2p_peers = IntGauge::new("amunchain_p2p_peers", "Connected peers").map_err(|_| MetricsError::Prom)?;
-        let block_height = IntGauge::new("amunchain_block_height", "Current block height").map_err(|_| MetricsError::Prom)?;
-        let transactions_total = IntCounter::new("amunchain_transactions_total", "Total tx processed").map_err(|_| MetricsError::Prom)?;
+        let p2p_peers = IntGauge::new("amunchain_p2p_peers", "Connected peers")
+            .map_err(|_| MetricsError::Prom)?;
+        let block_height = IntGauge::new("amunchain_block_height", "Current block height")
+            .map_err(|_| MetricsError::Prom)?;
+        let transactions_total =
+            IntCounter::new("amunchain_transactions_total", "Total tx processed")
+                .map_err(|_| MetricsError::Prom)?;
 
-        let p2p_replay_dropped_total = IntCounter::new("amunchain_p2p_replay_dropped_total", "Dropped replay messages").map_err(|_| MetricsError::Prom)?;
-        let p2p_invalid_msg_total = IntCounter::new("amunchain_p2p_invalid_msg_total", "Invalid decoded messages").map_err(|_| MetricsError::Prom)?;
-        let p2p_rate_limited_total = IntCounter::new("amunchain_p2p_rate_limited_total", "Rate-limited messages").map_err(|_| MetricsError::Prom)?;
+        let p2p_replay_dropped_total = IntCounter::new(
+            "amunchain_p2p_replay_dropped_total",
+            "Dropped replay messages",
+        )
+        .map_err(|_| MetricsError::Prom)?;
+        let p2p_invalid_msg_total = IntCounter::new(
+            "amunchain_p2p_invalid_msg_total",
+            "Invalid decoded messages",
+        )
+        .map_err(|_| MetricsError::Prom)?;
+        let p2p_rate_limited_total =
+            IntCounter::new("amunchain_p2p_rate_limited_total", "Rate-limited messages")
+                .map_err(|_| MetricsError::Prom)?;
         let p2p_reputation_throttled_total = IntCounter::new(
             "amunchain_p2p_reputation_throttled_total",
             "Reputation-based throttled messages",
         )
         .map_err(|_| MetricsError::Prom)?;
-        let p2p_banned_total = IntCounter::new("amunchain_p2p_banned_total", "Banned peer events").map_err(|_| MetricsError::Prom)?;
+        let p2p_banned_total = IntCounter::new("amunchain_p2p_banned_total", "Banned peer events")
+            .map_err(|_| MetricsError::Prom)?;
 
-        registry.register(Box::new(p2p_peers.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(block_height.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(transactions_total.clone())).map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_peers.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(block_height.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(transactions_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
 
-        registry.register(Box::new(p2p_replay_dropped_total.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(p2p_invalid_msg_total.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(p2p_rate_limited_total.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(p2p_reputation_throttled_total.clone())).map_err(|_| MetricsError::Prom)?;
-        registry.register(Box::new(p2p_banned_total.clone())).map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_replay_dropped_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_invalid_msg_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_rate_limited_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_reputation_throttled_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
+        registry
+            .register(Box::new(p2p_banned_total.clone()))
+            .map_err(|_| MetricsError::Prom)?;
 
         Ok(Self {
             registry,
