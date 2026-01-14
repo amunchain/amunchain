@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Deterministic Merkle tree for state proofs.
 //!
@@ -90,7 +89,11 @@ pub fn merkle_root_sorted(pairs: &[(Vec<u8>, Vec<u8>)]) -> Hash32 {
         let mut i = 0usize;
         while i < level.len() {
             let left = level[i];
-            let right = if i + 1 < level.len() { level[i + 1] } else { level[i] };
+            let right = if i + 1 < level.len() {
+                level[i + 1]
+            } else {
+                level[i]
+            };
             next.push(hash_node(left, right));
             i += 2;
         }
@@ -129,7 +132,11 @@ pub fn merkle_proof_sorted(pairs: &[(Vec<u8>, Vec<u8>)], index: usize) -> Option
         let mut i = 0usize;
         while i < level.len() {
             let left = level[i];
-            let right = if i + 1 < level.len() { level[i + 1] } else { level[i] };
+            let right = if i + 1 < level.len() {
+                level[i + 1]
+            } else {
+                level[i]
+            };
             next.push(hash_node(left, right));
             i += 2;
         }

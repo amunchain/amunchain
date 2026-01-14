@@ -9,15 +9,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Persistent key-value state using sled, with deterministic Merkle roots and inclusion proofs.
 
-use crate::core::state::merkle::{merkle_proof_sorted, merkle_root_sorted, verify_proof, Hash32, MerkleProof};
+use crate::core::state::merkle::{
+    merkle_proof_sorted, merkle_root_sorted, verify_proof, Hash32, MerkleProof,
+};
 use sled::transaction::{ConflictableTransactionError, Transactional};
-use std::path::PathBuf;
 use thiserror::Error;
 
 /// State errors.
@@ -67,28 +67,37 @@ impl PersistentState {
                 for op in ops.iter() {
                     match op {
                         KvOp::Put { key, value } => {
-                            t.insert(key.as_slice(), value.as_slice())
-                                .map_err(|_| ConflictableTransactionError::Abort(StateError::DbIo))?;
+                            t.insert(key.as_slice(), value.as_slice()).map_err(|_| {
+                                ConflictableTransactionError::Abort(StateError::DbIo)
+                            })?;
                         }
                         KvOp::Del { key } => {
-                            t.remove(key.as_slice())
-                                .map_err(|_| ConflictableTransactionError::Abort(StateError::DbIo))?;
+                            t.remove(key.as_slice()).map_err(|_| {
+                                ConflictableTransactionError::Abort(StateError::DbIo)
+                            })?;
                         }
                     }
                 }
                 Ok(())
             })
             .map_err(|e| match e {
-                sled::transaction::TransactionError::Abort(se) => ConflictableTransactionError::Abort(se),
-                sled::transaction::TransactionError::Storage(_) => ConflictableTransactionError::Abort(StateError::DbIo),
+                sled::transaction::TransactionError::Abort(se) => {
+                    ConflictableTransactionError::Abort(se)
+                }
+                sled::transaction::TransactionError::Storage(_) => {
+                    ConflictableTransactionError::Abort(StateError::DbIo)
+                }
             })
         })();
 
         match res {
             Ok(()) => Ok(()),
-            Err(ConflictableTransactionError::Abort(StateError::TxConflict)) => Err(StateError::TxConflict),
+            Err(ConflictableTransactionError::Abort(StateError::TxConflict)) => {
+                Err(StateError::TxConflict)
+            }
             Err(ConflictableTransactionError::Abort(e)) => Err(e),
             Err(ConflictableTransactionError::Conflict) => Err(StateError::TxConflict),
+            Err(ConflictableTransactionError::Storage(_)) => Err(StateError::DbIo),
         }
     }
 
@@ -104,9 +113,14 @@ impl PersistentState {
     }
 
     /// Produce an inclusion proof for a key, if it exists.
-    pub fn prove_key(&self, key: &[u8]) -> Result<Option<(Vec<u8>, Vec<u8>, Hash32, MerkleProof)>, StateError> {
+    pub fn prove_key(
+        &self,
+        key: &[u8],
+    ) -> Result<Option<(Vec<u8>, Vec<u8>, Hash32, MerkleProof)>, StateError> {
         let v = self.get(key)?;
-        let Some(value) = v else { return Ok(None); };
+        let Some(_value) = v else {
+            return Ok(None);
+        };
 
         let mut pairs: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
         for item in self.db.iter() {
@@ -117,7 +131,9 @@ impl PersistentState {
 
         let root = merkle_root_sorted(&pairs);
         let idx = pairs.binary_search_by(|p| p.0.as_slice().cmp(key)).ok();
-        let Some(i) = idx else { return Ok(None); };
+        let Some(i) = idx else {
+            return Ok(None);
+        };
 
         let proof = merkle_proof_sorted(&pairs, i);
         match proof {

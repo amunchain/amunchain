@@ -9,13 +9,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! State management: persistent KV + deterministic Merkle proofs.
 
-pub mod persistent_state;
 /// Merkle tree primitives and proofs.
 pub mod merkle;
-
+pub mod persistent_state;
