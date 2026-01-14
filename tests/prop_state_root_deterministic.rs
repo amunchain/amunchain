@@ -11,7 +11,7 @@
 
 #![forbid(unsafe_code)]
 
-use amunchain_layer0::core::state::persistent_state::{KvOp, PersistentState};
+use amunchain::core::state::persistent_state::{KvOp, PersistentState};
 use proptest::prelude::*;
 use std::collections::BTreeMap;
 

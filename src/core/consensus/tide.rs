@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use std::time::{SystemTime, UNIX_EPOCH};
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");

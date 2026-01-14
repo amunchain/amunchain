@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+#![allow(clippy::type_complexity)]
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -8,9 +10,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
 
 //! Persistent key-value state using sled, with deterministic Merkle roots and inclusion proofs.
 
@@ -62,7 +62,7 @@ impl PersistentState {
     /// Atomic commit using sled transactions.
     pub fn commit_atomic(&self, ops: Vec<KvOp>) -> Result<(), StateError> {
         let tree = &self.db;
-        let res: Result<(), ConflictableTransactionError<StateError>> = (|| {
+        let res: Result<(), ConflictableTransactionError<StateError>> = {
             tree.transaction(|t| {
                 for op in ops.iter() {
                     match op {
@@ -88,7 +88,7 @@ impl PersistentState {
                     ConflictableTransactionError::Abort(StateError::DbIo)
                 }
             })
-        })();
+        };
 
         match res {
             Ok(()) => Ok(()),

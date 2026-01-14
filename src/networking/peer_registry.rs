@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -8,9 +9,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
 
 //! Signed peer registry for loading validator allowlists.
 //!
@@ -208,6 +207,7 @@ fn now_ms() -> u64 {
 /// - age limits
 /// - grace windows
 /// - topic binding
+///
 /// Parse a peer registry TOML document (syntax + schema only).
 ///
 /// This does **not** verify signatures. It is intended for tooling and fuzzing.
@@ -237,10 +237,8 @@ pub fn load_and_verify_peer_registry(
     // Freshness fields.
     let issued = reg.issued_at_ms.unwrap_or(0);
     let expires = reg.expires_at_ms.unwrap_or(0);
-    if policy.require_freshness_fields {
-        if issued == 0 || expires == 0 {
-            return Err(PeerRegistryError::MissingField);
-        }
+    if policy.require_freshness_fields && (issued == 0 || expires == 0) {
+        return Err(PeerRegistryError::MissingField);
     }
     if issued != 0 && policy.now_ms < issued {
         return Err(PeerRegistryError::NotYetValid);

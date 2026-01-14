@@ -10,7 +10,7 @@
 // limitations under the License.
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+#![allow(missing_docs)]
 
 //! Economics: staking / slashing skeleton.
 

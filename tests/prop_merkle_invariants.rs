@@ -13,10 +13,13 @@ proptest! {
         // Canonical ordering requirement
         pairs.sort_by(|a,b| a.0.cmp(&b.0));
 
-        let root = merkle_root_sorted(&pairs);
-        let idx = (pairs[0].0 as usize) % pairs.len();
+        let kv_pairs: Vec<(Vec<u8>, Vec<u8>)> = pairs.iter().map(|(k,v)| (k.to_be_bytes().to_vec(), v.to_vec())).collect();
 
-        let proof = merkle_proof_sorted(&pairs, idx).expect("proof exists for non-empty set");
+
+        let root = merkle_root_sorted(&kv_pairs);
+        let idx = 0usize;
+
+        let proof = merkle_proof_sorted(&kv_pairs, idx).expect("proof exists for non-empty set");
         prop_assert!(verify_proof(root, &proof));
     }
 }

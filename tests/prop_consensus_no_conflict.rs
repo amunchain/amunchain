@@ -11,8 +11,8 @@
 
 #![forbid(unsafe_code)]
 
-use amunchain_layer0::core::consensus::tide::{NoopSlashing, TideConfig, TideFinalizer};
-use amunchain_layer0::core::types::{Commit, Signature, ValidatorId, Vote, H256};
+use amunchain::core::consensus::tide::{NoopSlashing, TideConfig, TideFinalizer};
+use amunchain::core::types::{Commit, Signature, ValidatorId, Vote, H256};
 use proptest::prelude::*;
 use std::collections::BTreeSet;
 
@@ -51,15 +51,37 @@ proptest! {
         let mut commits: Vec<Commit> = Vec::new();
 
         for v in validators.iter().take(5) {
-            let vote = Vote { height, round, block_hash: h1, voter: v.clone(), signature: dummy_sig() };
-            if let Ok(Some(c)) = tide.process_vote_inner_for_tests(vote) {
+
+let vote = Vote {
+            height,
+            round,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
+            block_hash: h1,
+            voter: v.clone(),
+            signature: dummy_sig() ,
+        };
+            if let Ok(Some(c)) = tide.process_vote_verified(vote) {
                 commits.push(c);
             }
         }
 
         for v in validators.iter().skip(5) {
-            let vote = Vote { height, round, block_hash: h2, voter: v.clone(), signature: dummy_sig() };
-            if let Ok(Some(c)) = tide.process_vote_inner_for_tests(vote) {
+
+let vote = Vote {
+            height,
+            round,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
+            block_hash: h2,
+            voter: v.clone(),
+            signature: dummy_sig() ,
+        };
+            if let Ok(Some(c)) = tide.process_vote_verified(vote) {
                 commits.push(c);
             }
         }

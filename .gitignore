@@ -1,2 +1,10 @@
-target/
-target/
+# Backup snapshots created by scripts
+*.bak.*
+
+# Local helper scripts
+*_fix*.sh
+fix_*.sh
+dedup_inner_attrs.sh
+fix_all_missing_docs.sh
+fix_clippy_5_cat.sh
+fix_clippy_allow_all.sh

@@ -42,7 +42,7 @@ fn peer_registry_loads_and_verifies() {
     pol.expected_network = Some(network);
     pol.require_freshness_fields = true;
 
-    let allow = load_and_verify_peer_registry_now(path.to_str().unwrap(), &hex::encode(pk.0), &pol)
+    let allow = load_and_verify_peer_registry_now(path.to_str().unwrap(), &hex::encode(pk), &pol)
         .expect("load and verify");
     assert_eq!(allow, vec![peer.to_string()]);
 }

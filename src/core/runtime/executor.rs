@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(clippy::all)]
+#![allow(missing_docs)]
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
 
 //! EVM executor placeholder.
 //!
