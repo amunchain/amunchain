@@ -49,7 +49,7 @@
 //! - **Rollback safety:** optional minimum version policy (and operationally, monotonically increasing
 //!   `issued_at_ms` via config management).
 
-use crate::core::security::keystore::{verify_pubkey_bytes, verify_sig_bytes64};
+use crate::core::security::keystore::verify_sig_bytes64;
 use libp2p::PeerId;
 use serde::Deserialize;
 use std::collections::BTreeSet;

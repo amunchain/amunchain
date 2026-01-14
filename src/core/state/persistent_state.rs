@@ -17,7 +17,7 @@
 use crate::core::state::merkle::{
     merkle_proof_sorted, merkle_root_sorted, verify_proof, Hash32, MerkleProof,
 };
-use sled::transaction::{ConflictableTransactionError, Transactional};
+use sled::transaction::ConflictableTransactionError;
 use thiserror::Error;
 
 /// State errors.

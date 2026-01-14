@@ -119,6 +119,7 @@ impl PeerScore {
 }
 
 // Helper for older Rust: saturating_duration_since is stable on Instant
+#[allow(dead_code)]
 trait InstantExt {
     fn saturating_duration_since(&self, earlier: Instant) -> Duration;
 }
