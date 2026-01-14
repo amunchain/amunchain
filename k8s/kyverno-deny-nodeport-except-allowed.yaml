@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-nodeport-except-allowed
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-nodeport-services
+      match:
+        any:
+          - resources:
+              kinds: ["Service"]
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.type || 'ClusterIP' }}"
+            operator: Equals
+            value: "NodePort"
+      validate:
+        message: "Service type NodePort is forbidden unless labeled security.amunchain/allow-nodeport=true."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.metadata.labels['security.amunchain/allow-nodeport'] || '' }}"
+                operator: NotEquals
+                value: "true"

@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-loadbalancer-except-allowed
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-loadbalancer-services
+      match:
+        any:
+          - resources:
+              kinds: ["Service"]
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.type || 'ClusterIP' }}"
+            operator: Equals
+            value: "LoadBalancer"
+      validate:
+        message: "Service type LoadBalancer is forbidden unless labeled security.amunchain/allow-loadbalancer=true."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.metadata.labels['security.amunchain/allow-loadbalancer'] || '' }}"
+                operator: NotEquals
+                value: "true"

@@ -1,0 +1,48 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-image-digest
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: require-digest-containers
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      preconditions:
+        all:
+          - key: "{{ request.object.metadata.labels.\"security.amunchain/allow-image-tag\" || '' }}"
+            operator: NotEquals
+            value: "true"
+      validate:
+        message: "Images must be referenced by digest (image@sha256:...). Add label security.amunchain/allow-image-tag=true only as an explicit exception."
+        foreach:
+          - list: "request.object.spec.containers[]"
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.image }}"
+                    operator: NotMatches
+                    value: ".+@sha256:[0-9a-fA-F]{64}$"
+    - name: require-digest-initcontainers
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      preconditions:
+        all:
+          - key: "{{ request.object.metadata.labels.\"security.amunchain/allow-image-tag\" || '' }}"
+            operator: NotEquals
+            value: "true"
+      validate:
+        message: "InitContainer images must be referenced by digest (image@sha256:...)."
+        foreach:
+          - list: "request.object.spec.initContainers[]"
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.image }}"
+                    operator: NotMatches
+                    value: ".+@sha256:[0-9a-fA-F]{64}$"

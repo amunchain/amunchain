@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-latest-image-tag
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: disallow-latest-tag
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "Image tag 'latest' is not allowed. Use a pinned version tag or an immutable digest (image@sha256:...)."
+        foreach:
+          - list: "request.object.spec.containers"
+            deny:
+              conditions:
+                all:
+                  # deny if ends with :latest
+                  - key: "{{ regex_match('.*:latest$', element.image) }}"
+                    operator: Equals
+                    value: true
+                  # allow digest-based references regardless of tag
+                  - key: "{{ contains(element.image, '@sha256:') }}"
+                    operator: Equals
+                    value: false

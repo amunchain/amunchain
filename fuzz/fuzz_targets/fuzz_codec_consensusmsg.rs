@@ -1,0 +1,24 @@
+// Copyright (c) 2026 Amunchain
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//     http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+#![no_main]
+#![forbid(unsafe_code)]
+
+use libfuzzer_sys::fuzz_target;
+use amunchain::core::types::{decode_canonical_limited, encode_canonical, ConsensusMsg};
+
+fuzz_target!(|data: &[u8]| {
+    let decoded = decode_canonical_limited::<ConsensusMsg>(data, 256 * 1024);
+    if let Ok(msg) = decoded {
+        let _ = encode_canonical(&msg).ok();
+    }
+});

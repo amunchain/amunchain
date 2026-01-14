@@ -1,0 +1,38 @@
+{
+  "title": "Amunchain Overview",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Peers",
+      "targets": [
+        {
+          "expr": "amunchain_p2p_peers"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Replay dropped rate",
+      "targets": [
+        {
+          "expr": "rate(amunchain_p2p_replay_dropped_total[1m])"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 6
+      }
+    }
+  ]
+}

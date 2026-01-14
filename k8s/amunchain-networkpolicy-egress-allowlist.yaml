@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amunchain-enterprise-egress-allowlist
+  namespace: amunchain
+spec:
+  podSelector: {}   # all pods in namespace (enterprise default)
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 30333   # P2P
+        - protocol: TCP
+          port: 9090    # HTTP/metrics/health
+
+  egress:
+    # 1) DNS only (required)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # 2) OPTIONAL: Allow outbound to specific bootstrap peers (replace CIDRs/ports)
+    # - to:
+    #     - ipBlock:
+    #         cidr: 203.0.113.10/32
+    #     - ipBlock:
+    #         cidr: 198.51.100.0/24
+    #   ports:
+    #     - protocol: TCP
+    #       port: 30333
+
+    # 3) OPTIONAL: Allow outbound HTTPS to a metrics gateway or time server (explicit allow)
+    # - to:
+    #     - ipBlock:
+    #         cidr: 192.0.2.20/32
+    #   ports:
+    #     - protocol: TCP
+    #       port: 443

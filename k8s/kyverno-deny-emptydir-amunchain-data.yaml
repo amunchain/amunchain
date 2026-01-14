@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-emptydir-for-amunchain-data
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-emptydir-on-amunchain-data-volume
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "Volume 'amunchain-data' must be backed by a PersistentVolumeClaim (emptyDir is forbidden for data)."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.volumes[?name=='amunchain-data'].emptyDir | length(@) }}"
+                operator: GreaterThan
+                value: 0

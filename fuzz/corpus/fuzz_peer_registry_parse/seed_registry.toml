@@ -1,0 +1,8 @@
+version = 1
+network = "amunchain/consensus/v2"
+issued_at_ms = 1700000000000
+expires_at_ms = 1999999999999
+peers = [
+  "12D3KooWPYkNZrwQo5yESaXbBQ64f3GyFaUPFynPUoE7PfJ4xL4u"
+]
+signature_b64 = ""

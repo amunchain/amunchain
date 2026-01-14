@@ -1,0 +1,24 @@
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+severity-threshold = "low"
+unmaintained = "deny"
+yanked = "deny"
+notice = "deny"
+ignore = []
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+deny = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+[licenses]
+unlicensed = "deny"
+confidence-threshold = 0.93
+allow = ["Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC", "CC0-1.0"]
+copyleft = "deny"
+exceptions = []

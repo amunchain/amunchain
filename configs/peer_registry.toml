@@ -1,0 +1,31 @@
+# Example signed peer registry (TOML) - v1
+#
+# Canonical bytes to sign:
+#
+#   v1
+#   network=<network>
+#   issued_at_ms=<u64>
+#   expires_at_ms=<u64>
+#   peers
+#   <peer1>
+#   <peer2>
+#   ...
+#
+# Notes:
+# - peers are sorted & deduplicated before signing/verification.
+# - signature_hex is Ed25519 signature (64 bytes) over the canonical bytes.
+
+version = 1
+network = "amunchain/consensus/v2"
+
+# Milliseconds since UNIX epoch.
+issued_at_ms = 1730000000000
+expires_at_ms = 1730003600000
+
+peers = [
+  "12D3KooWPYkNZrwQo5yESaXbBQ64f3GyFaUPFynPUoE7PfJ4xL4u",
+]
+
+# 64-byte Ed25519 signature in hex over the canonical bytes.
+# Replace with a real signature.
+signature_hex = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"

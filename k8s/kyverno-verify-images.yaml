@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-signed-images
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  rules:
+    - name: verify-image-signature
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      verifyImages:
+        - imageReferences:
+            - "*"
+          attestors:
+            - entries:
+                - keyless:
+                    issuer: "https://token.actions.githubusercontent.com"
+                    # IMPORTANT:
+                    # Replace <ORG>/<REPO> and workflow path to match your GitHub repository and workflow file.
+                    # Example:
+                    #   subject: "https://github.com/acme/amunchain/.github/workflows/security.yml@refs/heads/main"
+                    subject: "https://github.com/<ORG>/<REPO>/.github/workflows/security.yml@refs/heads/main"

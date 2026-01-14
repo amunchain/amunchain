@@ -1,0 +1,32 @@
+
+[node]
+name = "amunchain-dev"
+data_dir = "data"
+
+[http]
+listen_addr = "127.0.0.1:9090"
+
+[p2p]
+listen_addr = "/ip4/0.0.0.0/tcp/30333"
+topic = "amunchain/consensus/v2"
+max_msg_per_sec = 200
+max_peers_per_ip = 3
+bootstrap = []
+allow_peers = []
+require_allow_peers = false
+
+# Optional: signed peer registry (TOML) to populate allow_peers.
+# If allow_peers is empty and these are set, the node will load+verify the registry.
+# peer_registry_path = "configs/peer_registry.toml"
+# peer_registry_pubkey_hex = "<32-byte-ed25519-pubkey-hex>"
+# peer_registry_min_version = 1
+# peer_registry_max_age_ms = 86400000      # 24h
+# peer_registry_grace_ms = 300000          # 5m grace after expiry
+# peer_registry_require_fresh = true       # required in production builds
+
+
+[consensus]
+# Put 32-byte ed25519 pubkeys in hex.
+validators_hex = [
+  "0000000000000000000000000000000000000000000000000000000000000000"
+]

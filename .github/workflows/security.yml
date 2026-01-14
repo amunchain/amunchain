@@ -1,0 +1,72 @@
+name: security-gates
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny (pinned)
+        run: cargo install cargo-deny --version 0.14.24 --locked
+      - name: cargo deny
+        run: cargo deny check advisories bans licenses sources
+
+  sbom:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-cyclonedx (pinned)
+        run: cargo install cargo-cyclonedx --version 0.5.7 --locked
+      - name: Generate SBOM (CycloneDX)
+        run: cargo cyclonedx --format json --output-file sbom.cdx.json
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+  fuzz-smoke:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install nightly (for cargo-fuzz)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rust-src
+      - name: Install cargo-fuzz (pinned)
+        run: cargo install cargo-fuzz --version 0.11.2 --locked
+      - name: Fuzz smoke (short)
+        run: |
+          cd fuzz
+          cargo fuzz run fuzz_codec_consensusmsg -- -max_total_time=20
+          cargo fuzz run fuzz_state_merkle_proof -- -max_total_time=20
+          cargo fuzz run fuzz_peer_registry_parse -- -max_total_time=20
+      - name: Upload fuzz artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts
+          if-no-files-found: ignore
+
+      - name: Upload fuzz corpus (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-corpus
+          path: fuzz/corpus
+          if-no-files-found: ignore

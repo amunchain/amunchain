@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-restricted-runtime
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: disallow-privileged-and-hostpath
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "Restricted runtime required: no privileged, no hostPath, no hostNetwork/PID/IPC."
+        pattern:
+          spec:
+            =(hostNetwork): false
+            =(hostPID): false
+            =(hostIPC): false
+            containers:
+              - =(securityContext):
+                  =(privileged): false
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - "ALL"
+            =(volumes):
+              - X(hostPath): "null"

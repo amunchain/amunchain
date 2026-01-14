@@ -1,0 +1,39 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "amunchain.fullname" . }}-np
+  labels:
+    app: {{ include "amunchain.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "amunchain.fullname" . }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.service.p2pPort }}
+        - protocol: TCP
+          port: {{ .Values.service.httpPort }}
+  egress:
+    {{- if eq .Values.networkPolicy.mode "max" }}
+    # ✅ Max security: DNS-only allowlist
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- else }}
+    - {}
+    {{- end }}
+{{- end }}

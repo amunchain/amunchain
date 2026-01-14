@@ -1,0 +1,12 @@
+/srv/amunchain/src/target/release/deps/vergen_lib-6a233071c956401f.d: /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/lib.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/constants.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/emitter.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/entries.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/keys.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/utils.rs
+
+/srv/amunchain/src/target/release/deps/libvergen_lib-6a233071c956401f.rlib: /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/lib.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/constants.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/emitter.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/entries.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/keys.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/utils.rs
+
+/srv/amunchain/src/target/release/deps/libvergen_lib-6a233071c956401f.rmeta: /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/lib.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/constants.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/emitter.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/entries.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/keys.rs /home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/utils.rs
+
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/lib.rs:
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/constants.rs:
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/emitter.rs:
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/entries.rs:
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/keys.rs:
+/home/amun/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/vergen-lib-0.1.6/src/utils.rs:

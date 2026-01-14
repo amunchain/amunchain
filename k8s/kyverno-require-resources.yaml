@@ -1,0 +1,42 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resources-requests-limits
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-resources-for-containers
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "All containers must define resources.requests and resources.limits (cpu, memory)."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+    - name: require-resources-for-initcontainers
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "All initContainers must define resources.requests and resources.limits (cpu, memory)."
+        pattern:
+          spec:
+            =(initContainers):
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"

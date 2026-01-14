@@ -1,0 +1,46 @@
+image:
+  repository: amunchain
+  tag: 0.1.0
+  # digest: "sha256:..."  # إذا وضعته، سيتم استخدام image@digest ويُزال استثناء allow-image-tag
+  digest: ""
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  p2pPort: 30333
+  httpPort: 9090
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+
+config:
+  enabled: true
+  nodeToml: |
+    [node]
+    name = "amunchain-node"
+    data_dir = "/home/amunchain/data"
+    http_addr = "0.0.0.0:9090"
+    p2p_addr = "0.0.0.0:30333"
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClassName: ""
+
+networkPolicy:
+  enabled: true
+  # ✅ "max" = DNS-only egress allowlist
+  mode: max
+
+secretsStore:
+  enabled: false
+  # Mount path for secrets (read-only)
+  mountPath: /home/amunchain/secrets
+  # Example provider configs are in k8s/secrets-store/
+  provider: "vault"  # vault|azure|aws|gcp|generic

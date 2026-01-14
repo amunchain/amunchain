@@ -1,0 +1,12 @@
+
+groups:
+  - name: amunchain-alerts
+    rules:
+      - alert: AmunchainNodeDown
+        expr: up{job="amunchain-node"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Amunchain node is down"
+          description: "Prometheus cannot scrape amunchain node metrics for 30s."

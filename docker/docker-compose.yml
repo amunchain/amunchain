@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  amunchain:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: amunchain-node
+
+    # ✅ Ports (adjust as needed)
+    ports:
+      - "30333:30333"
+      - "9090:9090"
+
+    # ✅ Writable data, read-only configs
+    volumes:
+      - ../data:/home/amunchain/data
+      - ../configs:/home/amunchain/configs:ro
+
+    # ✅ Run as non-root explicitly (defense in depth)
+    user: "1000:1000"
+
+    # ✅ Runtime hardening
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+      - /run:rw,noexec,nosuid,nodev,size=16m
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    # ✅ Resource safety (helps against DoS/resource exhaustion)
+    pids_limit: 256
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+    # ✅ Healthcheck (expects /health on httpPort)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9090/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+    restart: unless-stopped

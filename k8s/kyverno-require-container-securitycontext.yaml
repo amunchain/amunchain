@@ -1,0 +1,56 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-container-securitycontext
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: enforce-container-securitycontext
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "Each container must run with hardened securityContext (no escalation, read-only rootfs, drop ALL caps, runAsNonRoot)."
+        foreach:
+          - list: "request.object.spec.containers[]"
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.securityContext.allowPrivilegeEscalation }}"
+                    operator: NotEquals
+                    value: false
+                  - key: "{{ element.securityContext.readOnlyRootFilesystem }}"
+                    operator: NotEquals
+                    value: true
+                  - key: "{{ element.securityContext.runAsNonRoot }}"
+                    operator: NotEquals
+                    value: true
+                  - key: "{{ element.securityContext.capabilities.drop }}"
+                    operator: NotIn
+                    value: ["ALL"]
+    - name: enforce-initcontainer-securitycontext
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+      validate:
+        message: "Each initContainer must run with hardened securityContext (no escalation, read-only rootfs, drop ALL caps, runAsNonRoot)."
+        foreach:
+          - list: "request.object.spec.initContainers[]"
+            deny:
+              conditions:
+                any:
+                  - key: "{{ element.securityContext.allowPrivilegeEscalation }}"
+                    operator: NotEquals
+                    value: false
+                  - key: "{{ element.securityContext.readOnlyRootFilesystem }}"
+                    operator: NotEquals
+                    value: true
+                  - key: "{{ element.securityContext.runAsNonRoot }}"
+                    operator: NotEquals
+                    value: true
+                  - key: "{{ element.securityContext.capabilities.drop }}"
+                    operator: NotIn
+                    value: ["ALL"]

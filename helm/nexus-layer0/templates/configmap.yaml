@@ -1,0 +1,11 @@
+{{- if .Values.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "amunchain.fullname" . }}-config
+  labels:
+    app: {{ include "amunchain.fullname" . }}
+data:
+  node.toml: |
+{{ .Values.config.nodeToml | indent 4 }}
+{{- end }}
