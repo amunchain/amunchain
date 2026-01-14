@@ -11,8 +11,8 @@
 
 #![forbid(unsafe_code)]
 
-use amunchain_layer0::core::consensus::driver::ConsensusDriver;
-use amunchain_layer0::core::types::{ConsensusMsg, Signature, ValidatorId, Vote, H256};
+use amunchain::core::consensus::driver::ConsensusDriver;
+use amunchain::core::types::{ConsensusMsg, Signature, ValidatorId, Vote, H256};
 use std::collections::BTreeSet;
 
 fn make_validators(n: usize) -> BTreeSet<ValidatorId> {
@@ -44,23 +44,29 @@ fn chaos_partition_does_not_panic() {
     let h2 = H256::from_bytes([2u8; 32]);
 
     for v in group1 {
-        let vote = Vote {
-            height,
+        let vote = Vote { height,
             round,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
             block_hash: h1,
             voter: v,
             signature: dummy_sig(),
-        };
+        , ..Default::default()};
         driver_a.on_msg(ConsensusMsg::Vote(vote));
     }
     for v in group2 {
-        let vote = Vote {
-            height,
+        let vote = Vote { height,
             round,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
             block_hash: h2,
             voter: v,
             signature: dummy_sig(),
-        };
+        , ..Default::default()};
         driver_b.on_msg(ConsensusMsg::Vote(vote));
     }
 }
