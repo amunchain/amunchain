@@ -1,5 +1,5 @@
 
-name: ci
+name: ci build-test
 on:
   push:
   pull_request:
