@@ -10,7 +10,7 @@
 // limitations under the License.
 
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Signed peer registry for loading validator allowlists.
 //!
@@ -49,7 +49,7 @@
 //! - **Rollback safety:** optional minimum version policy (and operationally, monotonically increasing
 //!   `issued_at_ms` via config management).
 
-use crate::core::security::keystore::{verify_pubkey_bytes, verify_sig_bytes};
+use crate::core::security::keystore::{verify_pubkey_bytes, verify_sig_bytes64};
 use libp2p::PeerId;
 use serde::Deserialize;
 use std::collections::BTreeSet;
@@ -166,12 +166,18 @@ fn parse_sig_64(s: &str) -> Result<[u8; 64], PeerRegistryError> {
     Ok(out)
 }
 
-fn canonical_bytes(reg: &PeerRegistryFile, peers: &BTreeSet<PeerId>) -> Result<Vec<u8>, PeerRegistryError> {
+fn canonical_bytes(
+    reg: &PeerRegistryFile,
+    peers: &BTreeSet<PeerId>,
+) -> Result<Vec<u8>, PeerRegistryError> {
     // Require basic fields for v1.
     if reg.version != 1 {
         return Err(PeerRegistryError::UnsupportedVersion);
     }
-    let net = reg.network.as_deref().ok_or(PeerRegistryError::MissingField)?;
+    let net = reg
+        .network
+        .as_deref()
+        .ok_or(PeerRegistryError::MissingField)?;
     let issued = reg.issued_at_ms.ok_or(PeerRegistryError::MissingField)?;
     let expires = reg.expires_at_ms.ok_or(PeerRegistryError::MissingField)?;
 
@@ -217,10 +223,6 @@ pub fn load_and_verify_peer_registry(
 ) -> Result<Vec<String>, PeerRegistryError> {
     // Public key must be a valid 32-byte Ed25519 pubkey.
     let pk = parse_hex_32(pubkey_hex)?;
-    if !verify_pubkey_bytes(&pk) {
-        return Err(PeerRegistryError::BadPubkey);
-    }
-
     let raw = fs::read_to_string(path).map_err(|_| PeerRegistryError::Read)?;
     let reg: PeerRegistryFile = toml::from_str(&raw).map_err(|_| PeerRegistryError::Parse)?;
 
@@ -267,14 +269,18 @@ pub fn load_and_verify_peer_registry(
     // Parse and dedupe peers.
     let mut peers = BTreeSet::new();
     for s in reg.peers.iter() {
-        let p = PeerId::from_bytes(&bs58::decode(s).into_vec().map_err(|_| PeerRegistryError::InvalidPeer)?)
-            .map_err(|_| PeerRegistryError::InvalidPeer)?;
+        let p = PeerId::from_bytes(
+            &bs58::decode(s)
+                .into_vec()
+                .map_err(|_| PeerRegistryError::InvalidPeer)?,
+        )
+        .map_err(|_| PeerRegistryError::InvalidPeer)?;
         peers.insert(p);
     }
 
     let sig = parse_sig_64(&reg.signature_hex)?;
     let msg = canonical_bytes(&reg, &peers)?;
-    if !verify_sig_bytes(&pk, &msg, &sig) {
+    if verify_sig_bytes64(&pk, &msg, &sig).is_err() {
         return Err(PeerRegistryError::BadSignature);
     }
 

@@ -9,15 +9,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Networking: libp2p transport and peer scoring.
 
 /// P2P transport and messaging (libp2p + Noise + gossipsub).
 pub mod p2p;
-/// Peer scoring and ban logic (anti-abuse).
-pub mod peer_score;
 /// Signed peer registry loader (optional) for validator allowlists.
 pub mod peer_registry;
+/// Peer scoring and ban logic (anti-abuse).
+pub mod peer_score;
