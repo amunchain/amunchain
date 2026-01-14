@@ -85,7 +85,7 @@ pub fn merkle_root_sorted(pairs: &[(Vec<u8>, Vec<u8>)]) -> Hash32 {
     }
     let mut level: Vec<Hash32> = pairs.iter().map(|(k, v)| hash_leaf(k, v)).collect();
     while level.len() > 1 {
-        let mut next: Vec<Hash32> = Vec::with_capacity((level.len() + 1) / 2);
+        let mut next: Vec<Hash32> = Vec::with_capacity(level.len().div_ceil(2));
         let mut i = 0usize;
         while i < level.len() {
             let left = level[i];
@@ -128,7 +128,7 @@ pub fn merkle_proof_sorted(pairs: &[(Vec<u8>, Vec<u8>)], index: usize) -> Option
             sibling,
         });
 
-        let mut next: Vec<Hash32> = Vec::with_capacity((level.len() + 1) / 2);
+        let mut next: Vec<Hash32> = Vec::with_capacity(level.len().div_ceil(2));
         let mut i = 0usize;
         while i < level.len() {
             let left = level[i];
