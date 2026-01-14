@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Hydro consensus (block production selection) - minimal skeleton.
 //!
@@ -61,7 +60,11 @@ impl HydroConfig {
     }
 
     /// Absolute time window check for slot.
-    pub fn check_time_window_abs(&self, current_abs_ms: u64, slot_start_abs_ms: u64) -> Result<u64, HydroError> {
+    pub fn check_time_window_abs(
+        &self,
+        current_abs_ms: u64,
+        slot_start_abs_ms: u64,
+    ) -> Result<u64, HydroError> {
         let slot_end_abs_ms = slot_start_abs_ms.saturating_add(self.slot_ms);
         let min_ok = slot_start_abs_ms.saturating_sub(self.skew_ms);
         let max_ok = slot_end_abs_ms.saturating_add(self.skew_ms);

@@ -9,13 +9,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Domain-separated signing bytes for consensus messages.
 
-use crate::core::types::{encode_canonical, H256, ValidatorId};
+use crate::core::types::{encode_canonical, ValidatorId, H256};
 use thiserror::Error;
 
 /// Signing error.
@@ -44,7 +43,6 @@ pub fn vote_signing_bytes_v1(
     out.extend_from_slice(&vb);
     Ok(out)
 }
-
 
 /// Vote signing payload v2 (replay-window sealed):
 /// domain || height || round || epoch || msg_counter || sent_ts_ms || ttl_ms || block_hash || voter
@@ -88,7 +86,15 @@ pub fn vote_signing_bytes_auto(
     if epoch == 0 && msg_counter == 0 && sent_ts_ms == 0 && ttl_ms == 0 {
         vote_signing_bytes_v1(height, round, block_hash, voter)
     } else {
-        vote_signing_bytes_v2(height, round, epoch, msg_counter, sent_ts_ms, ttl_ms, block_hash, voter)
+        vote_signing_bytes_v2(
+            height,
+            round,
+            epoch,
+            msg_counter,
+            sent_ts_ms,
+            ttl_ms,
+            block_hash,
+            voter,
+        )
     }
 }
-

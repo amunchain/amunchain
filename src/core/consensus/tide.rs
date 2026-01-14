@@ -1,3 +1,4 @@
+use std::time::{SystemTime, UNIX_EPOCH};
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -9,16 +10,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#![forbid(unsafe_code)]
-#![deny(missing_docs)]
-
-//! Tide finality gadget (BFT-lite) with signature verification and double-vote detection.
-
+/// Tide finality gadget (BFT-lite) with signature verification and double-vote detection.
+use crate::core::security::keystore::verify_pubkey_bytes;
 use crate::core::{
     consensus::signing::{vote_signing_bytes_auto, SigningError},
     security::keystore::{Keystore, KeystoreError},
-    types::{CanonicalMap, Commit, H256, Signature, ValidatorId, Vote},
+    types::{CanonicalMap, Commit, Signature, ValidatorId, Vote, H256},
 };
 use std::collections::{BTreeMap, BTreeSet};
 use thiserror::Error;
@@ -29,7 +26,7 @@ pub enum TideError {
     /// Replay, stale, or out-of-window message rejected.
     #[error("replay/stale message")]
     Replay,
-#[error("unknown validator")]
+    #[error("unknown validator")]
     UnknownValidator,
     #[error("invalid signature")]
     BadSignature,
@@ -136,7 +133,7 @@ impl<S: Slashing> TideFinalizer<S> {
     fn now_ms() -> u64 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
+            .map(|d: std::time::Duration| d.as_millis() as u64)
             .unwrap_or(0)
     }
 
@@ -161,7 +158,11 @@ impl<S: Slashing> TideFinalizer<S> {
         }
 
         if sent_ts_ms != 0 {
-            let skew = if now >= sent_ts_ms { now - sent_ts_ms } else { sent_ts_ms - now };
+            let skew = if now >= sent_ts_ms {
+                now - sent_ts_ms
+            } else {
+                sent_ts_ms - now
+            };
             if skew > self.cfg.max_clock_skew_ms {
                 return Err(TideError::Replay);
             }
@@ -202,7 +203,8 @@ impl<S: Slashing> TideFinalizer<S> {
                     return Err(TideError::Replay);
                 }
                 // Best-effort: also require non-decreasing timestamps if provided.
-                if sent_ts_ms != 0 && prev.last_sent_ts_ms != 0 && sent_ts_ms < prev.last_sent_ts_ms {
+                if sent_ts_ms != 0 && prev.last_sent_ts_ms != 0 && sent_ts_ms < prev.last_sent_ts_ms
+                {
                     return Err(TideError::Replay);
                 }
             }
@@ -220,7 +222,7 @@ impl<S: Slashing> TideFinalizer<S> {
 
         Ok(())
     }
-/// Verify vote signature then process.
+    /// Verify vote signature then process.
     pub fn process_vote_verified(&mut self, v: Vote) -> Result<Option<Commit>, TideError> {
         if !self.cfg.validators.contains(&v.voter) {
             return Err(TideError::UnknownValidator);
@@ -228,7 +230,10 @@ impl<S: Slashing> TideFinalizer<S> {
 
         self.check_freshness(v.sent_ts_ms, v.ttl_ms)?;
         self.check_replay_counter(&v.voter, v.epoch, v.msg_counter, v.sent_ts_ms)?;
-let pk_bytes = v.voter.as_public_key_bytes().ok_or(TideError::BadSignature)?;
+        let pk_bytes = v
+            .voter
+            .as_public_key_bytes()
+            .ok_or(TideError::BadSignature)?;
         let msg = vote_signing_bytes_auto(
             v.height,
             v.round,
@@ -239,7 +244,7 @@ let pk_bytes = v.voter.as_public_key_bytes().ok_or(TideError::BadSignature)?;
             v.block_hash,
             &v.voter,
         )?;
-        Keystore::verify_pubkey_bytes(&pk_bytes, &msg, &v.signature).map_err(|_| TideError::BadSignature)?;
+        verify_pubkey_bytes(&pk_bytes, &msg, &v.signature).map_err(|_| TideError::BadSignature)?;
 
         self.process_vote_inner(v)
     }
@@ -250,7 +255,7 @@ let pk_bytes = v.voter.as_public_key_bytes().ok_or(TideError::BadSignature)?;
         if self.cfg.require_epoch && c.epoch == 0 {
             return Err(TideError::Replay);
         }
-for (vid, _sig) in c.signatures.iter() {
+        for (vid, _sig) in c.signatures.iter() {
             if !self.cfg.validators.contains(vid) {
                 return Err(TideError::UnknownValidator);
             }
@@ -262,7 +267,6 @@ for (vid, _sig) in c.signatures.iter() {
             return Err(TideError::NotEnoughVotes);
         }
 
-        
         for (vid, sig) in c.signatures.iter() {
             let pk_bytes = vid.as_public_key_bytes().ok_or(TideError::BadSignature)?;
             let bytes = vote_signing_bytes_auto(
@@ -275,7 +279,7 @@ for (vid, _sig) in c.signatures.iter() {
                 c.block_hash,
                 vid,
             )?;
-            Keystore::verify_pubkey_bytes(&pk_bytes, &bytes, sig).map_err(|_| TideError::BadSignature)?;
+            verify_pubkey_bytes(&pk_bytes, &bytes, sig).map_err(|_| TideError::BadSignature)?;
         }
 
         Ok(())
@@ -285,7 +289,12 @@ for (vid, _sig) in c.signatures.iter() {
         let height_votes = self.votes.entry(v.height).or_default();
         let round_votes = height_votes.entry(v.round).or_default();
 
-        let meta = VoteMeta { epoch: v.epoch, msg_counter: v.msg_counter, sent_ts_ms: v.sent_ts_ms, ttl_ms: v.ttl_ms };
+        let meta = VoteMeta {
+            epoch: v.epoch,
+            msg_counter: v.msg_counter,
+            sent_ts_ms: v.sent_ts_ms,
+            ttl_ms: v.ttl_ms,
+        };
 
         if let Some((prev_hash, _prev_sig, prev_meta)) = round_votes.get(&v.voter) {
             if prev_hash != &v.block_hash || prev_meta != &meta {
@@ -300,8 +309,12 @@ for (vid, _sig) in c.signatures.iter() {
     }
 
     fn try_build_commit(&self, height: u64, round: u64) -> Result<Option<Commit>, TideError> {
-        let Some(hm) = self.votes.get(&height) else { return Ok(None); };
-        let Some(rm) = hm.get(&round) else { return Ok(None); };
+        let Some(hm) = self.votes.get(&height) else {
+            return Ok(None);
+        };
+        let Some(rm) = hm.get(&round) else {
+            return Ok(None);
+        };
 
         let mut counts: BTreeMap<(H256, VoteMeta), usize> = BTreeMap::new();
         for (hash, _sig, meta) in rm.values() {

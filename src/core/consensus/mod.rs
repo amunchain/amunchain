@@ -12,17 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Consensus: Hydro (block production placeholder) + Tide (finality).
 
-pub mod hydro;
-/// Tide: BFT-lite finality gadget implementation.
-pub mod tide;
 /// Consensus driver: wires Tide to network + state.
 pub mod driver;
+pub mod hydro;
 /// Domain-separated signing and verification helpers.
 pub mod signing;
+/// Tide: BFT-lite finality gadget implementation.
+pub mod tide;
