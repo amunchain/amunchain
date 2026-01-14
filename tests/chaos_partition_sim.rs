@@ -54,10 +54,14 @@ fn chaos_partition_does_not_panic() {
             msg_counter: 0,
             sent_ts_ms: 0,
             ttl_ms: 0,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
             block_hash: h1,
             voter: v,
             signature: dummy_sig(),
-        , ..Default::default()};
+        , };
         driver_a.on_msg(ConsensusMsg::Vote(vote));
     }
     for v in group2 {
@@ -71,10 +75,14 @@ fn chaos_partition_does_not_panic() {
             msg_counter: 0,
             sent_ts_ms: 0,
             ttl_ms: 0,
+            epoch: 0,
+            msg_counter: 0,
+            sent_ts_ms: 0,
+            ttl_ms: 0,
             block_hash: h2,
             voter: v,
             signature: dummy_sig(),
-        , ..Default::default()};
+        , };
         driver_b.on_msg(ConsensusMsg::Vote(vote));
     }
 }
