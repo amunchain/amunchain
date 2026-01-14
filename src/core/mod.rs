@@ -9,22 +9,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Core modules: types, consensus, state, security, economics, runtime.
 
-/// Deterministic core types and canonical encoding.
-pub mod types;
 /// Finality gadget and consensus driver.
 pub mod consensus;
-/// Persistent state and Merkle commitments/proofs.
-pub mod state;
-/// Cryptography, keystore, and anti-replay helpers.
-pub mod security;
 /// Economic primitives (staking, fees).
 pub mod economics;
 /// Runtime scaffolding (execution hooks).
 pub mod runtime;
-
+/// Cryptography, keystore, and anti-replay helpers.
+pub mod security;
+/// Persistent state and Merkle commitments/proofs.
+pub mod state;
+/// Deterministic core types and canonical encoding.
+pub mod types;

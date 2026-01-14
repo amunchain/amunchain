@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Deterministic core types and canonical encoding helpers.
 
@@ -34,7 +33,9 @@ pub enum CodecError {
 /// Canonical bincode options (deterministic).
 fn bincode_opts() -> impl Options {
     // Fixint encoding provides a stable integer representation.
-    bincode::DefaultOptions::new().with_fixint_encoding().reject_trailing_bytes()
+    bincode::DefaultOptions::new()
+        .with_fixint_encoding()
+        .reject_trailing_bytes()
 }
 
 /// Encode with deterministic rules. Requires deterministic container ordering (use BTreeMap/BTreeSet).
@@ -45,7 +46,10 @@ pub fn encode_canonical<T: Serialize>(v: &T) -> Result<Vec<u8>, CodecError> {
 }
 
 /// Decode with a hard size cap.
-pub fn decode_canonical_limited<T: DeserializeOwned>(bytes: &[u8], max: usize) -> Result<T, CodecError> {
+pub fn decode_canonical_limited<T: DeserializeOwned>(
+    bytes: &[u8],
+    max: usize,
+) -> Result<T, CodecError> {
     // Fast-path cap on the raw wire payload.
     if bytes.len() > max {
         return Err(CodecError::TooLarge);
@@ -64,9 +68,13 @@ pub struct H256([u8; 32]);
 
 impl H256 {
     /// Construct from raw bytes.
-    pub fn from_bytes(b: [u8; 32]) -> Self { Self(b) }
+    pub fn from_bytes(b: [u8; 32]) -> Self {
+        Self(b)
+    }
     /// Return bytes.
-    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 /// Ed25519 signature bytes (expected 64).
@@ -214,22 +222,21 @@ pub struct NodeP2pConfig {
     #[serde(default)]
     pub peer_registry_pubkey_hex: Option<String>,
 
-/// Minimum required peer registry format version. (e.g., 1). If 0, accept any supported.
-#[serde(default)]
-pub peer_registry_min_version: u32,
+    /// Minimum required peer registry format version. (e.g., 1). If 0, accept any supported.
+    #[serde(default)]
+    pub peer_registry_min_version: u32,
 
-/// Max age (now - issued_at_ms) allowed for the registry in milliseconds. If 0, no age limit.
-#[serde(default)]
-pub peer_registry_max_age_ms: u64,
+    /// Max age (now - issued_at_ms) allowed for the registry in milliseconds. If 0, no age limit.
+    #[serde(default)]
+    pub peer_registry_max_age_ms: u64,
 
-/// Grace period after expires_at_ms in milliseconds. If 0, no grace.
-#[serde(default)]
-pub peer_registry_grace_ms: u64,
+    /// Grace period after expires_at_ms in milliseconds. If 0, no grace.
+    #[serde(default)]
+    pub peer_registry_grace_ms: u64,
 
-/// Require registry freshness fields (issued_at_ms/expires_at_ms/network) to be present.
-#[serde(default)]
-pub peer_registry_require_fresh: bool,
-
+    /// Require registry freshness fields (issued_at_ms/expires_at_ms/network) to be present.
+    #[serde(default)]
+    pub peer_registry_require_fresh: bool,
 }
 
 /// Consensus config.

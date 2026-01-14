@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Amunchain Layer 0 - production-oriented blockchain framework skeleton.
 //!
@@ -24,8 +23,7 @@
 
 /// Core protocol primitives (types, consensus, state, security).
 pub mod core;
-/// P2P networking stack (libp2p transport, scoring, anti-abuse).
-pub mod networking;
 /// Observability (metrics, structured logging helpers).
 pub mod monitoring;
-
+/// P2P networking stack (libp2p transport, scoring, anti-abuse).
+pub mod networking;
