@@ -9,7 +9,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
 
 use amunchain_layer0::core::state::persistent_state::{KvOp, PersistentState};
@@ -20,10 +19,20 @@ fn test_state_root_and_proof() {
     let st = PersistentState::open(dir.path().to_str().unwrap()).unwrap();
 
     st.commit_atomic(vec![
-        KvOp::Put { key: b"a".to_vec(), value: b"1".to_vec() },
-        KvOp::Put { key: b"b".to_vec(), value: b"2".to_vec() },
-        KvOp::Put { key: b"c".to_vec(), value: b"3".to_vec() },
-    ]).unwrap();
+        KvOp::Put {
+            key: b"a".to_vec(),
+            value: b"1".to_vec(),
+        },
+        KvOp::Put {
+            key: b"b".to_vec(),
+            value: b"2".to_vec(),
+        },
+        KvOp::Put {
+            key: b"c".to_vec(),
+            value: b"3".to_vec(),
+        },
+    ])
+    .unwrap();
 
     let root = st.state_root().unwrap();
     let got = st.prove_key(b"b").unwrap().unwrap();

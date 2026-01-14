@@ -9,7 +9,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
 
 use amunchain_layer0::core::state::persistent_state::{KvOp, PersistentState};

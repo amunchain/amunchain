@@ -9,11 +9,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
 
 use amunchain_layer0::core::consensus::tide::{NoopSlashing, TideConfig, TideFinalizer};
-use amunchain_layer0::core::types::{Commit, H256, Signature, ValidatorId, Vote};
+use amunchain_layer0::core::types::{Commit, Signature, ValidatorId, Vote, H256};
 use proptest::prelude::*;
 use std::collections::BTreeSet;
 
