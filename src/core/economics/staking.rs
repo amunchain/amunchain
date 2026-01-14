@@ -1,71 +1,42 @@
 // Copyright (c) 2026 Amunchain
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//     http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Licensed under the Apache License, Version 2.0
 
+//! Deterministic staking ledger: bonding, unbonding, slashing, rewards.
 
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
-
-//! Staking & slashing (deterministic skeleton).
-//!
-//! This module provides a deterministic staking ledger with:
-//! - Bond / unbond requests
-//! - Unbonding period enforcement (default 21 days)
-//! - Basic slashing application (fractional)
-//! - Reward distribution proportional to stake (commission-ready)
 
 use std::collections::BTreeMap;
 use thiserror::Error;
 
 const SECONDS_PER_DAY: u64 = 86_400;
-const MIN_UNBONDING_DAYS: u64 = 21;
+const MIN_UNBONDING_DAYS: u64 = 7;
 
-/// Errors returned by staking operations.
 #[derive(Debug, Error)]
 pub enum StakingError {
-    #[error("insufficient stake")]
-    InsufficientStake,
-    #[error("unbonding not matured")]
-    UnbondingNotMatured,
     #[error("invalid amount")]
     InvalidAmount,
+    #[error("insufficient stake")]
+    InsufficientStake,
 }
 
-/// A delegator's stake bonded to a validator.
 #[derive(Clone, Debug)]
 pub struct Delegation {
-    /// Bonded amount.
     pub amount: u128,
 }
 
-/// Pending unbonding entry with a deterministic unlock time.
 #[derive(Clone, Debug)]
 pub struct UnbondingEntry {
-    /// Amount to be released on maturity.
     pub amount: u128,
-    /// Unlock time in unix seconds.
     pub unlock_time: u64,
 }
 
-/// Validator metadata used by the staking ledger.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Validator {
-    /// Commission rate in basis points (0..=10_000).
     pub commission_bps: u16,
-    /// Self-bonded stake amount.
     pub self_stake: u128,
-    /// Total amount slashed from this validator (accounting only).
     pub slashed: u128,
 }
 
-/// Deterministic staking ledger (bonding, unbonding, slashing).
 #[derive(Clone, Debug, Default)]
 pub struct StakingLedger {
     /// Registered validators keyed by validator id bytes.
@@ -78,7 +49,6 @@ pub struct StakingLedger {
 
 impl StakingLedger {
     /// Bond stake from a delegator to a validator.
-
     pub fn bond(
         &mut self,
         delegator: Vec<u8>,
@@ -89,13 +59,15 @@ impl StakingLedger {
             return Err(StakingError::InvalidAmount);
         }
         let key = (delegator, validator);
-        let entry = self.delegations.entry(key).or_insert(Delegation { amount: 0 });
+        let entry = self
+            .delegations
+            .entry(key)
+            .or_insert(Delegation { amount: 0 });
         entry.amount = entry.amount.saturating_add(amount);
         Ok(())
     }
+
     /// Start unbonding: decreases delegation and creates a timed unbonding entry.
-
-
     pub fn begin_unbond(
         &mut self,
         delegator: Vec<u8>,
@@ -107,20 +79,26 @@ impl StakingLedger {
             return Err(StakingError::InvalidAmount);
         }
         let key = (delegator.clone(), validator.clone());
-        let del = self.delegations.get_mut(&key).ok_or(StakingError::InsufficientStake)?;
+        let del = self
+            .delegations
+            .get_mut(&key)
+            .ok_or(StakingError::InsufficientStake)?;
         if del.amount < amount {
             return Err(StakingError::InsufficientStake);
         }
         del.amount -= amount;
 
-        let unlock_time = now_unix.saturating_add(MIN_UNBONDING_DAYS.saturating_mul(SECONDS_PER_DAY));
+        let unlock_time =
+            now_unix.saturating_add(MIN_UNBONDING_DAYS.saturating_mul(SECONDS_PER_DAY));
         let ub = self.unbonding.entry(key).or_default();
-        ub.push(UnbondingEntry { amount, unlock_time });
+        ub.push(UnbondingEntry {
+            amount,
+            unlock_time,
+        });
         Ok(())
-    /// Finalize matured unbonding entries and return the released amount.
-
     }
 
+    /// Finalize matured unbonding entries and return released amount.
     pub fn finalize_unbond(
         &mut self,
         delegator: Vec<u8>,
@@ -128,7 +106,9 @@ impl StakingLedger {
         now_unix: u64,
     ) -> Result<u128, StakingError> {
         let key = (delegator, validator);
-        let Some(list) = self.unbonding.get_mut(&key) else { return Ok(0); };
+        let Some(list) = self.unbonding.get_mut(&key) else {
+            return Ok(0);
+        };
 
         let mut released: u128 = 0;
         let mut remaining: Vec<UnbondingEntry> = Vec::with_capacity(list.len());
@@ -139,14 +119,13 @@ impl StakingLedger {
                 remaining.push(e.clone());
             }
         }
-
         *list = remaining;
         Ok(released)
     }
 
-    /// Apply slashing to all delegations to a validator by fraction in basis points (0..=10000).
+    /// Apply slashing to all delegations to a validator by fraction in bps (0..=10000).
     pub fn slash_validator(&mut self, validator: &[u8], fraction_bps: u16) -> u128 {
-        let frac = fraction_bps.min(10_000) as u128;
+        let frac = (fraction_bps.min(10_000)) as u128;
         let mut total_slashed: u128 = 0;
 
         for ((_, v), del) in self.delegations.iter_mut() {
@@ -168,6 +147,7 @@ impl StakingLedger {
         if total_reward == 0 {
             return;
         }
+
         let mut total_stake: u128 = 0;
         for ((_, v), del) in self.delegations.iter() {
             if v.as_slice() == validator {

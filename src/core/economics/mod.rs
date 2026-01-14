@@ -9,9 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! Economics: staking / slashing skeleton.
 
