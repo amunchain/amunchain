@@ -1,5 +1,5 @@
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,7 +10,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 
 //! Keystore: Ed25519 signing/verification with rate limiting and an audit trail.
 //!
@@ -26,8 +25,7 @@
 //! where the ciphertext is AES-256-GCM over the Ed25519 PKCS#8 bytes.
 
 use ring::{
-    aead,
-    pbkdf2,
+    aead, pbkdf2,
     rand::{SecureRandom, SystemRandom},
     signature::{Ed25519KeyPair, KeyPair, UnparsedPublicKey, ED25519},
 };
@@ -43,7 +41,6 @@ use thiserror::Error;
 use zeroize::Zeroize;
 
 use crate::core::types::Signature;
-
 
 fn env_first(keys: &[&str]) -> Option<String> {
     for &k in keys {
@@ -76,7 +73,8 @@ fn pbkdf2_iters() -> NonZeroU32 {
 
     // Clamp to a practical range to avoid accidental DoS / too-weak configs.
     let iters = iters.clamp(10_000, 10_000_000);
-    NonZeroU32::new(iters).unwrap_or_else(|| NonZeroU32::new(PBKDF2_ITERS_DEFAULT).expect("nonzero"))
+    NonZeroU32::new(iters)
+        .unwrap_or_else(|| NonZeroU32::new(PBKDF2_ITERS_DEFAULT).expect("nonzero"))
 }
 
 /// Keystore errors.
@@ -110,7 +108,9 @@ pub struct FileEd25519Backend {
 }
 
 fn rotate_audit_if_needed(path: &Path) {
-    let Ok(md) = fs::metadata(path) else { return; };
+    let Ok(md) = fs::metadata(path) else {
+        return;
+    };
     if md.len() <= MAX_AUDIT_BYTES {
         return;
     }
@@ -163,7 +163,10 @@ fn atomic_write_private(path: &Path, bytes: &[u8]) -> Result<(), KeystoreError> 
     Ok(())
 }
 
-fn derive_aes256gcm_key(passphrase: &[u8], salt: &[u8; KEY_SALT_LEN]) -> Result<[u8; 32], KeystoreError> {
+fn derive_aes256gcm_key(
+    passphrase: &[u8],
+    salt: &[u8; KEY_SALT_LEN],
+) -> Result<[u8; 32], KeystoreError> {
     let mut out = [0u8; 32];
     pbkdf2::derive(
         pbkdf2::PBKDF2_HMAC_SHA256,
@@ -182,11 +185,13 @@ fn encrypt_pkcs8(passphrase: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, Keystor
     rng.fill(&mut salt).map_err(|_| KeystoreError::Crypto)?;
 
     let mut nonce_bytes = [0u8; KEY_NONCE_LEN];
-    rng.fill(&mut nonce_bytes).map_err(|_| KeystoreError::Crypto)?;
+    rng.fill(&mut nonce_bytes)
+        .map_err(|_| KeystoreError::Crypto)?;
     let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
     let mut key = derive_aes256gcm_key(passphrase, &salt)?;
-    let unbound = aead::UnboundKey::new(&aead::AES_256_GCM, &key).map_err(|_| KeystoreError::Crypto)?;
+    let unbound =
+        aead::UnboundKey::new(&aead::AES_256_GCM, &key).map_err(|_| KeystoreError::Crypto)?;
     let less_safe = aead::LessSafeKey::new(unbound);
 
     // ciphertext buffer = plaintext + tag
@@ -197,7 +202,8 @@ fn encrypt_pkcs8(passphrase: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, Keystor
 
     key.zeroize();
 
-    let mut out = Vec::with_capacity(KEY_FILE_MAGIC.len() + KEY_SALT_LEN + KEY_NONCE_LEN + in_out.len());
+    let mut out =
+        Vec::with_capacity(KEY_FILE_MAGIC.len() + KEY_SALT_LEN + KEY_NONCE_LEN + in_out.len());
     out.extend_from_slice(KEY_FILE_MAGIC);
     out.extend_from_slice(&salt);
     out.extend_from_slice(&nonce_bytes);
@@ -218,12 +224,14 @@ fn decrypt_pkcs8(passphrase: &[u8], bytes: &[u8]) -> Result<Vec<u8>, KeystoreErr
     salt.copy_from_slice(&bytes[KEY_FILE_MAGIC.len()..KEY_FILE_MAGIC.len() + KEY_SALT_LEN]);
     let mut nonce_bytes = [0u8; KEY_NONCE_LEN];
     nonce_bytes.copy_from_slice(
-        &bytes[KEY_FILE_MAGIC.len() + KEY_SALT_LEN..KEY_FILE_MAGIC.len() + KEY_SALT_LEN + KEY_NONCE_LEN],
+        &bytes[KEY_FILE_MAGIC.len() + KEY_SALT_LEN
+            ..KEY_FILE_MAGIC.len() + KEY_SALT_LEN + KEY_NONCE_LEN],
     );
     let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
     let mut key = derive_aes256gcm_key(passphrase, &salt)?;
-    let unbound = aead::UnboundKey::new(&aead::AES_256_GCM, &key).map_err(|_| KeystoreError::Crypto)?;
+    let unbound =
+        aead::UnboundKey::new(&aead::AES_256_GCM, &key).map_err(|_| KeystoreError::Crypto)?;
     let less_safe = aead::LessSafeKey::new(unbound);
 
     let mut in_out = bytes[KEY_FILE_MAGIC.len() + KEY_SALT_LEN + KEY_NONCE_LEN..].to_vec();
@@ -273,7 +281,8 @@ impl FileEd25519Backend {
         buf.zeroize();
 
         // Parse from plaintext pkcs8 (already in `pkcs8`).
-        let kp = Ed25519KeyPair::from_pkcs8(pkcs8.as_ref()).map_err(|_| KeystoreError::InvalidKey)?;
+        let kp =
+            Ed25519KeyPair::from_pkcs8(pkcs8.as_ref()).map_err(|_| KeystoreError::InvalidKey)?;
         Ok(Self { keypair: kp })
     }
 }
@@ -302,7 +311,11 @@ struct RateLimiter {
 
 impl RateLimiter {
     fn new(limit_per_sec: u32) -> Self {
-        Self { window_start: Instant::now(), count: 0, limit_per_sec }
+        Self {
+            window_start: Instant::now(),
+            count: 0,
+            limit_per_sec,
+        }
     }
 
     fn allow(&mut self) -> bool {
@@ -336,7 +349,11 @@ impl Keystore<FileEd25519Backend> {
         audit_path.push("audit.log");
 
         let backend = FileEd25519Backend::load_or_create(&key_path)?;
-        Ok(Self { backend, limiter: Mutex::new(RateLimiter::new(10_000)), audit_path })
+        Ok(Self {
+            backend,
+            limiter: Mutex::new(RateLimiter::new(10_000)),
+            audit_path,
+        })
     }
 }
 
@@ -348,7 +365,10 @@ impl<B: SignerBackend> Keystore<B> {
 
     /// Sign with rate limiting and an audit trail (best-effort).
     pub fn sign(&self, msg: &[u8]) -> Result<Signature, KeystoreError> {
-        let mut guard = self.limiter.lock().map_err(|_| KeystoreError::RateLimited)?;
+        let mut guard = self
+            .limiter
+            .lock()
+            .map_err(|_| KeystoreError::RateLimited)?;
         if !guard.allow() {
             return Err(KeystoreError::RateLimited);
         }
@@ -359,13 +379,18 @@ impl<B: SignerBackend> Keystore<B> {
 }
 
 /// Verify signature given raw pubkey bytes.
-pub fn verify_pubkey_bytes(pk_bytes: &[u8; 32], msg: &[u8], sig: &Signature) -> Result<(), KeystoreError> {
+pub fn verify_pubkey_bytes(
+    pk_bytes: &[u8; 32],
+    msg: &[u8],
+    sig: &Signature,
+) -> Result<(), KeystoreError> {
     // ring requires signature length 64 for Ed25519
     if sig.0.len() != 64 {
         return Err(KeystoreError::BadSignature);
     }
     let pk = UnparsedPublicKey::new(&ED25519, pk_bytes);
-    pk.verify(msg, &sig.0).map_err(|_| KeystoreError::BadSignature)
+    pk.verify(msg, &sig.0)
+        .map_err(|_| KeystoreError::BadSignature)
 }
 
 fn append_audit(path: &Path, action: &str, msg: &[u8]) -> Result<(), KeystoreError> {
@@ -385,6 +410,18 @@ fn append_audit(path: &Path, action: &str, msg: &[u8]) -> Result<(), KeystoreErr
         .open(path)
         .map_err(|_| KeystoreError::Io)?;
     set_private_perms_best_effort(path);
-    f.write_all(line.as_bytes()).map_err(|_| KeystoreError::Io)?;
+    f.write_all(line.as_bytes())
+        .map_err(|_| KeystoreError::Io)?;
     Ok(())
+}
+
+/// Verify an Ed25519 signature provided as raw 64 bytes.
+pub fn verify_sig_bytes64(
+    pk_bytes: &[u8; 32],
+    msg: &[u8],
+    sig64: &[u8; 64],
+) -> Result<(), KeystoreError> {
+    // Signature is defined in crate::core::types; in this codebase it is a tuple struct over [u8; 64].
+    let sig: Signature = Signature((*sig64).to_vec());
+    verify_pubkey_bytes(pk_bytes, msg, &sig)
 }

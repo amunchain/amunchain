@@ -9,7 +9,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #![forbid(unsafe_code)]
 
 use anyhow::Result;
@@ -17,7 +16,9 @@ use ring::signature::{Ed25519KeyPair, KeyPair};
 use std::path::PathBuf;
 
 fn main() -> Result<()> {
-    let out_dir = std::env::args().nth(1).unwrap_or_else(|| "data".to_string());
+    let out_dir = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "data".to_string());
     let mut key_path = PathBuf::from(out_dir);
     std::fs::create_dir_all(&key_path)?;
     key_path.push("validator.key");
