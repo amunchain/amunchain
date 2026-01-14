@@ -8,3 +8,6 @@ dedup_inner_attrs.sh
 fix_all_missing_docs.sh
 fix_clippy_5_cat.sh
 fix_clippy_allow_all.sh
+
+# Rust build artifacts
+target/
