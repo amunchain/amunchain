@@ -3,7 +3,7 @@
 // Licensed under the Apache License, Version 2.0
 
 // P2P subsystem (libp2p): persistent identity + gossipsub consensus topic.
-
+//
 // This replaces the previous build-stub with a minimal but real networking loop.
 // - Outbound: ConsensusMsg -> gossipsub publish (bincode)
 // - Inbound: gossipsub message -> ConsensusMsg -> inbound channel
@@ -90,16 +90,19 @@ enum BehaviourEvent {
     Identify(()),
     Ping(()),
 }
+
 impl From<gossipsub::Event> for BehaviourEvent {
     fn from(e: gossipsub::Event) -> Self {
         Self::Gossipsub(Box::new(e))
     }
 }
+
 impl From<identify::Event> for BehaviourEvent {
     fn from(_e: identify::Event) -> Self {
         Self::Identify(())
     }
 }
+
 impl From<ping::Event> for BehaviourEvent {
     fn from(_e: ping::Event) -> Self {
         Self::Ping(())
@@ -299,6 +302,12 @@ pub fn spawn_p2p(
                             info!(%peer_id, "peer connected");
                         }
 
+                        SwarmEvent::ConnectionClosed { peer_id, .. } => {
+                            metrics.p2p_peers.dec();
+                            let _ = ev_tx.send(P2pEvent::PeerDisconnected(peer_id.to_bytes())).await;
+                            info!(%peer_id, "peer disconnected");
+                        }
+
                         SwarmEvent::Behaviour(BehaviourEvent::Gossipsub(ev)) => {
                             if let gossipsub::Event::Message {
                                 propagation_source,
@@ -317,28 +326,12 @@ pub fn spawn_p2p(
 
                                 match bincode::deserialize::<ConsensusMsg>(&message.data) {
                                     Ok(msg) => {
-                                        let _ =
-                                            in_tx.send((propagation_source.to_bytes(), msg)).await;
+                                        let _ = in_tx.send((propagation_source.to_bytes(), msg)).await;
                                     }
                                     Err(_) => {
                                         warn!(%propagation_source, "invalid consensus msg decode");
                                         metrics.p2p_invalid_msg_total.inc();
                                     }
-                                }
-                            }
-                        }
-                            if !allow_set.is_empty() && !allow_set.contains(&propagation_source) {
-                                warn!(%propagation_source, "message from non-allowlisted peer; dropping");
-                                metrics.p2p_banned_total.inc();
-                                continue;
-                            }
-                            match bincode::deserialize::<ConsensusMsg>(&message.data) {
-                                Ok(msg) => {
-                                    let _ = in_tx.send((propagation_source.to_bytes(), msg)).await;
-                                }
-                                Err(_) => {
-                                    warn!(%propagation_source, "invalid consensus msg decode");
-                                    metrics.p2p_invalid_msg_total.inc();
                                 }
                             }
                         }
