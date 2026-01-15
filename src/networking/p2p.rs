@@ -299,13 +299,34 @@ pub fn spawn_p2p(
                             info!(%peer_id, "peer connected");
                         }
 
-                        SwarmEvent::ConnectionClosed { peer_id, .. } => {
-                            metrics.p2p_peers.dec();
-                            let _ = ev_tx.send(P2pEvent::PeerDisconnected(peer_id.to_bytes())).await;
-                            info!(%peer_id, "peer disconnected");
-                        }
+                        SwarmEvent::Behaviour(BehaviourEvent::Gossipsub(ev)) => {
+                            if let gossipsub::Event::Message {
+                                propagation_source,
+                                message,
+                                ..
+                            } = *ev
+                            {
+                                if !allow_set.is_empty() && !allow_set.contains(&propagation_source) {
+                                    warn!(
+                                        %propagation_source,
+                                        "message from non-allowlisted peer; dropping"
+                                    );
+                                    metrics.p2p_banned_total.inc();
+                                    continue;
+                                }
 
-                        SwarmEvent::Behaviour(BehaviourEvent::Gossipsub(gossipsub::Event::Message { propagation_source, message, .. })) => {
+                                match bincode::deserialize::<ConsensusMsg>(&message.data) {
+                                    Ok(msg) => {
+                                        let _ =
+                                            in_tx.send((propagation_source.to_bytes(), msg)).await;
+                                    }
+                                    Err(_) => {
+                                        warn!(%propagation_source, "invalid consensus msg decode");
+                                        metrics.p2p_invalid_msg_total.inc();
+                                    }
+                                }
+                            }
+                        }
                             if !allow_set.is_empty() && !allow_set.contains(&propagation_source) {
                                 warn!(%propagation_source, "message from non-allowlisted peer; dropping");
                                 metrics.p2p_banned_total.inc();
