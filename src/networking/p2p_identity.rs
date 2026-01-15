@@ -24,7 +24,9 @@ impl From<io::Error> for IdentityError {
 /// or create a new one and persist it.
 ///
 /// Returns (PeerId, Keypair).
-pub fn load_or_create_identity(data_dir: impl AsRef<Path>) -> Result<(PeerId, identity::Keypair), IdentityError> {
+pub fn load_or_create_identity(
+    data_dir: impl AsRef<Path>,
+) -> Result<(PeerId, identity::Keypair), IdentityError> {
     let dir = data_dir.as_ref();
     fs::create_dir_all(dir)?;
 
@@ -32,13 +34,16 @@ pub fn load_or_create_identity(data_dir: impl AsRef<Path>) -> Result<(PeerId, id
 
     if path.exists() {
         let bytes = fs::read(&path)?;
-        let kp = identity::Keypair::from_protobuf_encoding(&bytes).map_err(|_| IdentityError::Decode)?;
+        let kp =
+            identity::Keypair::from_protobuf_encoding(&bytes).map_err(|_| IdentityError::Decode)?;
         let pid = PeerId::from(kp.public());
         return Ok((pid, kp));
     }
 
     let kp = identity::Keypair::generate_ed25519();
-    let bytes = kp.to_protobuf_encoding().map_err(|_| IdentityError::Decode)?;
+    let bytes = kp
+        .to_protobuf_encoding()
+        .map_err(|_| IdentityError::Decode)?;
 
     // Atomic-ish write: write to tmp then rename.
     let tmp = dir.join("p2p_identity.key.tmp");

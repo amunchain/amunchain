@@ -56,14 +56,18 @@ async fn main() {
                 bootstrap.push(format!("/ip4/127.0.0.1/tcp/4001/p2p/{peer_id}"));
             }
             Err(e) => {
-                warn!(?e, "failed to load node1 identity for bootstrap; starting without bootstrap");
+                warn!(
+                    ?e,
+                    "failed to load node1 identity for bootstrap; starting without bootstrap"
+                );
             }
         }
     }
 
     // Metrics: spawn_p2p now needs Arc<Metrics>
     // (Path may be `amunchain::monitoring::metrics::Metrics` OR `amunchain::core::metrics::Metrics` depending on your tree.)
-    let metrics: Arc<amunchain::monitoring::metrics::Metrics> = Arc::new(amunchain::monitoring::metrics::Metrics::new().expect("metrics init failed"));
+    let metrics: Arc<amunchain::monitoring::metrics::Metrics> =
+        Arc::new(amunchain::monitoring::metrics::Metrics::new().expect("metrics init failed"));
 
     let cfg = amunchain::networking::p2p::P2pConfig {
         data_dir: data_dir.clone(),

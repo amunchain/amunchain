@@ -1,4 +1,3 @@
-
 #[allow(missing_docs)]
 // Copyright (c) 2026 Amunchain
 // Licensed under the Apache License, Version 2.0
@@ -10,15 +9,8 @@
 // - Inbound: gossipsub message -> ConsensusMsg -> inbound channel
 // - Allowlist: if allow_peers non-empty, disconnect peers not in allowlist
 // - Metrics: peer count gauge + banned counter + invalid msg counter
-
-
 use crate::{core::types::ConsensusMsg, monitoring::metrics::Metrics};
-use std::{
-    collections::HashSet,
-    path::Path,
-    sync::Arc,
-    time::Duration,
-};
+use std::{collections::HashSet, path::Path, sync::Arc, time::Duration};
 
 use thiserror::Error;
 use tokio::sync::mpsc;
@@ -27,7 +19,7 @@ use tracing::{info, warn};
 use libp2p::{
     core::upgrade,
     gossipsub::{self, IdentTopic, MessageAuthenticity},
-    identify,     noise, ping,
+    identify, noise, ping,
     swarm::{NetworkBehaviour, Swarm, SwarmEvent},
     tcp, yamux, Multiaddr, PeerId, Transport,
 };
@@ -138,12 +130,18 @@ pub fn spawn_p2p(
     ensure_dir(&cfg.data_dir)?;
 
     // Persistent identity lives in networking::p2p_identity (already in your project).
-    let (local_peer_id, id_keys) = crate::networking::p2p_identity::load_or_create_identity(&cfg.data_dir)
-        .map_err(|_| P2pError::Io)?;
+    let (local_peer_id, id_keys) =
+        crate::networking::p2p_identity::load_or_create_identity(&cfg.data_dir)
+            .map_err(|_| P2pError::Io)?;
 
     // Build allowlist set.
     let mut allow_set: HashSet<PeerId> = HashSet::new();
-    for s in cfg.allow_peers.iter().map(|x| x.trim()).filter(|x| !x.is_empty()) {
+    for s in cfg
+        .allow_peers
+        .iter()
+        .map(|x| x.trim())
+        .filter(|x| !x.is_empty())
+    {
         match s.parse::<PeerId>() {
             Ok(pid) => {
                 allow_set.insert(pid);
@@ -187,16 +185,14 @@ pub fn spawn_p2p(
             .build()
             .unwrap_or_else(|_| gossipsub::Config::default());
 
-        let mut gossipsub = match gossipsub::Behaviour::new(
-            MessageAuthenticity::Signed(id_keys.clone()),
-            gcfg,
-        ) {
-            Ok(v) => v,
-            Err(_) => {
-                warn!("failed to create gossipsub behaviour");
-                return;
-            }
-        };
+        let mut gossipsub =
+            match gossipsub::Behaviour::new(MessageAuthenticity::Signed(id_keys.clone()), gcfg) {
+                Ok(v) => v,
+                Err(_) => {
+                    warn!("failed to create gossipsub behaviour");
+                    return;
+                }
+            };
 
         let topic = IdentTopic::new(topic_name.clone());
         if let Err(e) = gossipsub.subscribe(&topic) {
@@ -215,9 +211,18 @@ pub fn spawn_p2p(
                 .with_timeout(Duration::from_secs(20)),
         );
 
-        let behaviour = Behaviour { gossipsub, identify, ping };
+        let behaviour = Behaviour {
+            gossipsub,
+            identify,
+            ping,
+        };
 
-        let mut swarm = Swarm::new(transport, behaviour, local_peer_id, SwarmConfig::with_tokio_executor());
+        let mut swarm = Swarm::new(
+            transport,
+            behaviour,
+            local_peer_id,
+            SwarmConfig::with_tokio_executor(),
+        );
 
         // Listen
         let listen: Multiaddr = match listen_addr.parse() {
