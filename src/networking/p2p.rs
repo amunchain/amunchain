@@ -92,7 +92,7 @@ enum BehaviourEvent {
 }
 impl From<gossipsub::Event> for BehaviourEvent {
     fn from(e: gossipsub::Event) -> Self {
-        Self::Gossipsub(e)
+        Self::Gossipsub(Box::new(e))
     }
 }
 impl From<identify::Event> for BehaviourEvent {
