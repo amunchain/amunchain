@@ -1,13 +1,16 @@
-# Backup snapshots created by scripts
-*.bak.*
+# runtime data
+data/
+**/data/
+*.db
+*.sled
+*.log
 
-# Local helper scripts
-*_fix*.sh
-fix_*.sh
-dedup_inner_attrs.sh
-fix_all_missing_docs.sh
-fix_clippy_5_cat.sh
-fix_clippy_allow_all.sh
+# rust
+/target/
+**/target/
 
-# Rust build artifacts
-target/
+# editor / backups
+*.bak
+*.swp
+*~
+.DS_Store
